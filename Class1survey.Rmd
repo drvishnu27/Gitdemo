@@ -1,0 +1,117 @@
+---
+title: "Class1 survey analysis"
+author: "Vishnuvardhan"
+date: "2024-09-19"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+##### 1. Import class one survey data from our Github site (https://github.com/kijohnson/ADA-2024) (The dataset is called 'Class 1 Survey Fall 2024_di.csv'), calling the R dataframe that you create *C1survey*.
+``````{r}
+# reading the C1survey dataset from Github
+pacman::p_load(dplyr, readr)
+Class1survey <- read_csv("https://raw.githubusercontent.com/kijohnson/ADA-2024/main/Class%201%20(Getting%20started%20and%20RR%20I)/Lab/Class%201%20Survey%20Fall%202024_di.csv")
+View(Class1survey)
+```
+##### 2. Determine: **a.** the number of observations (i.e. the number of people who filled out the survey) and **b.** the number of variables in the dataframe.
+``````{r}
+# a and b determine number of observations and variables in C1ass1survey dataset
+dim(Class1survey)
+# there are 29 observations and 27 variables
+str(Class1survey)
+```
+##### 3. **a.** Rename the column variables to something shorter and that is descriptive of what the variable is about (for example *like_dogs* for the 'Do you like dogs?' question variable) and **b.** Display that they are renamed.
+```{r}
+#using names function to rename all the 27 variables in sequence
+names(Class1survey)[1:27]<-c("id", "like_cats", "like_dogs", "have_desert", "slogan", "fav_day", "larkORowl", "fav_food", "fav_drink", "fav_season", "fav_month", "hobby", "program", "specialization", "stat_software", "R_exp", "coding_comfort", "coding_length", "top_three","public_health_interest", "fav_num", "bday", "bmonth", "country", "state", "city", "highest_educ_level")
+
+#displaying the renamed variables
+colnames(Class1survey)
+```
+##### 4. Write code to determine and display the number of factor, integer, numerical, and character variables there are in the *C1survey* dataset.
+```{r}
+table(sapply(Class1survey, class)) #using table and sapply functions 23 character and 4 integer
+summary(Class1survey)
+```
+##### 5. **a.** Using code, check the *bday* and *bmonth* variables for any unusual or missing values. If you find any, **b.** describe what you will do with the unusual values in a comment before or immediately following the code that does it, and **c.** after you have cleaned up any unusual values, find the median bday and month. *Note: please make sure that your bday and month variables are numeric before doing statistics
+```{r}
+#a.looking at values for bday and bmonth
+Class1survey$bday
+Class1survey$bmonth
+
+#b.recoding bday with non numeric values
+
+#bday recoding method
+class(Class1survey$bday) # checking that it is coded as character class
+Class1survey$bday<-ifelse(Class1survey$bday == "May 21-report 21", "21", Class1survey$bday)
+Class1survey$bday<-ifelse(Class1survey$bday == "March 31st", "31", Class1survey$bday)
+Class1survey$bday # check values 
+
+# convert to numeric for statistics
+Class1survey$bday<-as.numeric(Class1survey$bday)
+table(Class1survey$bday, useNA = "always") # checking values 
+
+# bmonth recoding
+class(Class1survey$bmonth)
+
+Class1survey$bmonth[Class1survey$bmonth=="May 21-report 5"]<-"5"
+Class1survey$bmonth[Class1survey$bmonth=="February"]<-"2"
+Class1survey$bmonth[Class1survey$bmonth=="September"]<-"9"
+Class1survey$bmonth[Class1survey$bmonth=="July"]<-"7"
+Class1survey$bmonth[Class1survey$bmonth=="March"]<-"3"
+Class1survey$bmonth # check values 
+
+#convert to numeric for statistics
+Class1survey$bmonth<-as.numeric(Class1survey$bmonth)
+Class1survey$bmonth # check values 
+
+#c.calculating medians for bday and bmonth 
+median(Class1survey$bday, na.rm=TRUE) # 14 (biased because of 0, which is not a value) 
+median(Class1survey$bmonth, na.rm=TRUE) # 7
+```
+
+##### 6. **a.** Create a new variable called *bseason* that gives the season according to Northern Meteorological season in which respondents were born (winter = 12/1 to 2/29, spring = 3/1 to 5/31, summer = 6/1 to 8/31, fall = 9/1 to 11/30). **b**. Using the table function, print a table of Seasons in the columns and bmonths in the rows that allows you to check that the coding is correct **c**. Sum the columns using the addmargins function to answer the question of how many classmates were born in each season? Include your answer in the code. 
+```{r}
+# a.
+# using dplyr
+Class1survey <- Class1survey %>%
+  mutate(bseason=case_when(bmonth %in% c(12,1,2) ~"Winter",
+                           bmonth %in% c(3,4,5) ~"Spring",
+                           bmonth %in% c(6,7,8) ~"Summer",
+                           bmonth %in% c(9,10,11) ~"Fall"))
+table(Class1survey$bmonth, Class1survey$bseason) # check variable
+
+Class1survey$bseason_f<-factor(Class1survey$bseason, levels=c("Winter", "Spring", "Summer", "Fall"))
+
+
+# b. 
+table(Class1survey$bmonth, Class1survey$bseason)
+table(Class1survey$bmonth, Class1survey$bseason_f)
+
+# c.
+tab<-addmargins(table(Class1survey$bmonth, Class1survey$bseason, useNA = "always"), 1)
+tab
+tab<-addmargins(table(Class1survey$bmonth, Class1survey$bseason_f, useNA = "always"), 1)
+tab
+
+# Births by season: Fall = 4 Winter = 9 Spring = 8 Summer = 8
+```
+##### 7. Pick your favorite variable or variables to analyze, come up with a question you want to answer with that variable or variables, generate the code, and provide an answer to your question. Describe what you did using comments (i.e. #'s).
+
+#FROM THE GIVEN DATASET, WHAT IS THE AVERAGE LEVEL OF CODING COMFORT?
+```{r}
+View(Class1survey)
+mean(Class1survey$coding_comfort, na.rm=TRUE) 
+#2.75
+#USING mean function
+```
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
